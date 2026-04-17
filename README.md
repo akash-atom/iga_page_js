@@ -7,7 +7,7 @@ Custom JavaScript for a Webflow page.
 Add the following script tag to the Webflow page's custom code (before `</body>`):
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/@aw-webflow/iga_page_js@1.0.0/script.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@aw-webflow/iga_page_js@1.0.1/script.js"></script>
 ```
 
 Pin to a specific version in production. jsDelivr will cache aggressively — bump the version to force a refresh.
