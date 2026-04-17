@@ -1,5 +1,4 @@
 (function () {
-  var VIMEO_ID = '1184037630';
   var PLYR_VERSION = '3.7.8';
   var SWIPER_VERSION = '11';
 
@@ -7,18 +6,6 @@
   var PLYR_JS = 'https://cdn.jsdelivr.net/npm/plyr@' + PLYR_VERSION + '/dist/plyr.min.js';
   var SWIPER_CSS = 'https://cdn.jsdelivr.net/npm/swiper@' + SWIPER_VERSION + '/swiper-bundle.min.css';
   var SWIPER_JS = 'https://cdn.jsdelivr.net/npm/swiper@' + SWIPER_VERSION + '/swiper-bundle.min.js';
-
-  var STYLES =
-    '.video_wrapper{position:relative;width:100%;aspect-ratio:16/9;overflow:hidden}' +
-    '@supports not (aspect-ratio:16/9){.video_wrapper::before{content:"";display:block;padding-top:56.25%}}' +
-    '.video_wrapper .plyr{position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;transition:opacity 300ms ease}' +
-    '.video_wrapper .plyr.is-ready{opacity:1}';
-
-  function injectStyles() {
-    var style = document.createElement('style');
-    style.appendChild(document.createTextNode(STYLES));
-    document.head.appendChild(style);
-  }
 
   function loadCss(href) {
     var link = document.createElement('link');
@@ -70,43 +57,6 @@
     player.on('ended', function () { setOpacity('1'); });
   }
 
-  function initHeroVideo() {
-    var wrappers = document.querySelectorAll('.video_wrapper');
-    for (var i = 0; i < wrappers.length; i++) {
-      (function (wrapper) {
-        if (wrapper.querySelector('.plyr')) return;
-
-        var el = document.createElement('div');
-        el.setAttribute('data-plyr-provider', 'vimeo');
-        el.setAttribute('data-plyr-embed-id', VIMEO_ID);
-        wrapper.appendChild(el);
-
-        var player = new window.Plyr(el, {
-          controls: ['play'],
-          autoplay: true,
-          muted: true,
-          clickToPlay: true,
-          loop: { active: true },
-          vimeo: {
-            background: true,
-            byline: false,
-            portrait: false,
-            title: false,
-            transparent: true,
-            dnt: true
-          }
-        });
-
-        function markReady() {
-          var plyrEl = wrapper.querySelector('.plyr');
-          if (plyrEl) plyrEl.classList.add('is-ready');
-        }
-        player.on('playing', markReady);
-        player.on('ready', function () { setTimeout(markReady, 600); });
-      })(wrappers[i]);
-    }
-  }
-
   function initFold1Swiper() {
     if (!document.querySelector('.fold_1')) return;
     new window.Swiper('.fold_1', {
@@ -136,13 +86,8 @@
   }
 
   function initAll() {
-    if (window.Plyr) {
-      initThumbPlayer();
-      initHeroVideo();
-    }
-    if (window.Swiper) {
-      initFold1Swiper();
-    }
+    if (window.Plyr) initThumbPlayer();
+    if (window.Swiper) initFold1Swiper();
   }
 
   function onReady(fn) {
@@ -153,15 +98,22 @@
     }
   }
 
-  injectStyles();
-  loadCss(PLYR_CSS);
-  loadCss(SWIPER_CSS);
+  var needPlyr = !window.Plyr && !!document.querySelector('.plyr');
+  var needSwiper = !window.Swiper && !!document.querySelector('.fold_1');
 
-  var pending = 2;
+  if (needPlyr) loadCss(PLYR_CSS);
+  if (needSwiper) loadCss(SWIPER_CSS);
+
+  var pending = 0;
+  if (needPlyr) pending++;
+  if (needSwiper) pending++;
+
   function maybeBoot() {
     pending--;
-    if (pending === 0) onReady(initAll);
+    if (pending <= 0) onReady(initAll);
   }
-  loadScript(PLYR_JS, maybeBoot);
-  loadScript(SWIPER_JS, maybeBoot);
+
+  if (needPlyr) loadScript(PLYR_JS, maybeBoot);
+  if (needSwiper) loadScript(SWIPER_JS, maybeBoot);
+  if (!needPlyr && !needSwiper) onReady(initAll);
 })();
